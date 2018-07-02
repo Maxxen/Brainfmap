@@ -36,4 +36,4 @@ For now, running main interprets and prints the output of the included example p
 ### Why StateT?
 Fun, mostly. I wanted to learn more about both haskell abstractions and compiler/language theory so I started small. 
 The brainfuck machine model is inherently stateful so I figured it would be suitable to simulate it with a state transformer.
-That said it is probably possible to write a smaller and more efficient implementation with some more functional-styled monadic magic or by just passing the memory around with good old pattern matching.
+That said, knowing Haskell, it is probably possible to write a smaller and more efficient implementation with some more functional-styled monadic magic or by just passing the memory around with good old pattern matching.
