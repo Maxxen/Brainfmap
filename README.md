@@ -1,10 +1,11 @@
 # Brainfmap
 Functional ["Brainf*ck"](https://en.wikipedia.org/wiki/Brainfuck) interpreter utilizing monadic state in less than 70 lines of Haskell
+
 (Although requires [mtl](http://hackage.haskell.org/package/mtl) and imports [Data.Word](http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Word.html), so true code size is probably unremarkable 😉)
 
 ### Features
 * 8-bit "wrap-around" data memory cells
-* Infinite amount of cells in the right direction.
+* Infinite amount of cells in the right direction
 * [Therefore, Turing complete](https://en.wikipedia.org/wiki/Brainfuck#Array_size)
 
 ### Demos and Usage
