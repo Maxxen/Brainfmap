@@ -62,7 +62,7 @@ execInstruction = do
     modify $ updateImem increment                                                           -- Increment PC
     case memEnd $ imem $ s of
         True -> return ()                                                                   -- No more instructions, return unit
-        False -> execInstruction                                                            -- Invalid instruction, ignore and move to next
+        False -> execInstruction                                                            -- Else, step again
 
 printByte :: Word8 -> IO()
 printByte w = putStrLn $ [toEnum (fromEnum w)] ++ "    " ++ show w
