@@ -58,7 +58,7 @@ execInstruction = do
                         jumpBack n m@(Memory _ '[' _) = jumpBack (n-1) (decrement m)        --      increment counter for every ] and decrement for [
                         jumpBack n m@(Memory _ ']' _) = jumpBack (n+1) (decrement m)        --      When counter is 0 and we find a [ it's our match!
                         jumpBack n m = jumpBack n (decrement m)                             --      Then resume execution from new PC
-        _ -> return ()                                                                          -- Invalid instruction, dont modify state.
+        _ -> return ()                                                                      -- Invalid instruction, dont modify state.
     modify $ updateImem increment                                                           -- Increment PC
     case memEnd $ imem $ s of
         True -> return ()                                                                   -- No more instructions, return unit
