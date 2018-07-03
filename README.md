@@ -1,5 +1,5 @@
 # Brainfmap
-Functional ["Brainf*ck"](https://en.wikipedia.org/wiki/Brainfuck) interpreter utilizing monadic state in less than 70 lines of Haskell
+Functional ["Brainf*ck"](https://en.wikipedia.org/wiki/Brainfuck) VM/interpreter utilizing monadic state in less than 70 lines of Haskell
 
 (Although requires [mtl](http://hackage.haskell.org/package/mtl) and imports [Data.Word](http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Word.html), so true code size is probably unremarkable 😉)
 
