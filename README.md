@@ -5,7 +5,7 @@ Functional ["Brainf*ck"](https://en.wikipedia.org/wiki/Brainfuck) VM/interpreter
 
 ### Features
 * 8-bit "wrap-around" data memory cells
-* Infinite amount of cells in the right direction
+* Infinite amount of data memory cells in the "right" direction
 * [Therefore, Turing complete](https://en.wikipedia.org/wiki/Brainfuck#Array_size)
 
 ### Demos and Usage
