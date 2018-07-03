@@ -24,11 +24,11 @@ memEnd :: Memory a -> Bool
 memEnd (Memory _ _ []) = True
 memEnd _ = False
 
-extract :: Memory a -> a
-extract (Memory _ p _) = p
+load :: Memory a -> a
+load (Memory _ p _) = p
 
-insert ::Memory a -> a -> Memory a
-insert (Memory l _ r) p = Memory l p r
+write ::Memory a -> a -> Memory a
+write (Memory l _ r) p = Memory l p r
 
 main :: IO ()
 main = do
@@ -38,19 +38,19 @@ main = do
 execInstruction :: VM ()
 execInstruction = do
     s <- get                                                                                -- Get state
-    case (extract $ imem $ s) of                                                            -- Pattern match PC
+    case (load $ imem $ s) of                                                               -- Pattern match PC pointer to get instruction
         '>' -> modify $ updateDmem increment                                                -- Increment DP
         '<' -> modify $ updateDmem decrement                                                -- Decrement DP
-        '+' -> modify $ updateDmem $ insert <*> (+1) . extract                              -- Increment byte at DP
-        '-' -> modify $ updateDmem $ insert <*> (subtract 1) . extract                      -- decrement byte at DP ("-1" doesnt play nice with Word8)
-        '.' -> liftIO $ printByte $ extract $ dmem $ s                                      -- Print byte at DP
+        '+' -> modify $ updateDmem $ write <*> (+1) . load                                  -- Increment byte at DP
+        '-' -> modify $ updateDmem $ write <*> (subtract 1) . load                          -- decrement byte at DP ("-1" doesnt play nice with Word8)
+        '.' -> liftIO $ printByte $ load $ dmem $ s                                         -- Print byte at DP
         ',' -> do                                                                           -- Read char from IO, write to byte at DP
-            byte <- liftIO $ (getChar)
-            modify $ updateDmem $ insert <*> (\_ -> toEnum (fromEnum byte)) . extract
-        '[' -> put s                                                                        -- Just leave state as is (could also be "modify id")
+            byte <- liftIO $ getChar
+            modify $ updateDmem $ flip write $ toEnum $ fromEnum byte
+        '[' -> return ()                                                                    -- Just leave state as is (could also be "modify id")
         ']' -> 
-            case 0 == (extract (dmem s)) of                                                 -- If DP is nonzero we jump back to matching [
-                True -> put s
+            case 0 == (load (dmem s)) of                                                    -- If DP is nonzero we jump back to matching [
+                True -> return ()
                 False -> modify $ updateImem $ jumpBack 0 . decrement
                     where
                         jumpBack :: Int -> Memory Instruction -> Memory Instruction
@@ -58,7 +58,7 @@ execInstruction = do
                         jumpBack n m@(Memory _ '[' _) = jumpBack (n-1) (decrement m)        --      increment counter for every ] and decrement for [
                         jumpBack n m@(Memory _ ']' _) = jumpBack (n+1) (decrement m)        --      When counter is 0 and we find a [ it's our match!
                         jumpBack n m = jumpBack n (decrement m)                             --      Then resume execution from new PC
-        _ -> put s                                                                          -- Invalid instruction, dont modify state.
+        _ -> return ()                                                                          -- Invalid instruction, dont modify state.
     modify $ updateImem increment                                                           -- Increment PC
     case memEnd $ imem $ s of
         True -> return ()                                                                   -- No more instructions, return unit
