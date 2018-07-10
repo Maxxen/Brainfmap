@@ -1,12 +1,12 @@
 # Brainfmap
-Functional ["Brainf*ck"](https://en.wikipedia.org/wiki/Brainfuck) VM/interpreter utilizing monadic state in less than 70 lines of Haskell
+Functional ["Brainf*ck"](https://en.wikipedia.org/wiki/Brainfuck) VM/interpreter utilizing monadic state.
 
-(Although requires [mtl](http://hackage.haskell.org/package/mtl) and imports [Data.Word](http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Word.html), so true code size is probably unremarkable 😉)
+(requires [mtl](http://hackage.haskell.org/package/mtl))
 
 ### Features
 * 8-bit "wrap-around" data memory cells
 * Infinite amount of data memory cells in the "right" direction
-* [Therefore, Turing complete](https://en.wikipedia.org/wiki/Brainfuck#Array_size)
+* [Turing complete](https://en.wikipedia.org/wiki/Brainfuck#Array_size)
 
 ### Demos and Usage
 Todo.
@@ -33,7 +33,3 @@ For now, running main interprets and prints the output of the included example p
 * Reverse Haskell-to-Brainfuck transpiling
 * [Malbolge](https://en.wikipedia.org/wiki/Malbolge) support.
 
-### Why StateT?
-Fun, mostly. I wanted to learn more about both haskell abstractions and compiler/language theory so I started small. 
-The brainfuck machine model is inherently stateful so I figured it would be suitable to simulate it with a state transformer.
-That said, knowing Haskell, it is probably possible to write a smaller and more efficient implementation with some more functional-styled monadic magic or by just passing the memory around with good old pattern matching.
