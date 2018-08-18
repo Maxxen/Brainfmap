@@ -1,10 +1,100 @@
 import Data.Word
 import Control.Monad.State
+import Control.Monad.Free
+import Prelude hiding (Left, Right)
 
 type VM = StateT VMState IO
 data VMState = VMState {dmem :: Memory Word8, imem :: Memory Instruction} deriving(Show)
 data Memory a = Memory [a] a [a] deriving Show
 type Instruction = Char
+
+data IRF next = 
+    Add Int next 
+    | Sub Int next 
+    | Right Int next 
+    | Left Int next
+    | Output next 
+    | Input next
+    | Open next
+    | Close next 
+    | Clear next
+    | Mul Int Int next
+    | Div Int Int next
+    | Copy Int next
+
+instance Functor (IRF) where
+    fmap f (Add x next) = Add x (f next)
+    fmap f (Sub x next) = Sub x (f next)
+    fmap f (Right x next) = Right x (f next)
+    fmap f (Output next) = Output (f next)
+    fmap f (Input next) = Input (f next)
+    fmap f (Open next) = Open (f next)
+    fmap f (Close next) = Close (f next)
+    fmap f (Mul x y next) = Mul x y (f next)
+    fmap f (Div x y next) = Div x y (f next)
+    fmap f (Copy x next) = Copy x (f next)
+
+
+    
+
+type IR = Free IRF
+
+parse :: [Char] -> IR () 
+parse ('>':xs) = Free ((Right 1) (parse xs))
+parse ('<':xs) = Free ((Left 1) (parse xs))
+parse ('+':xs) = Free ((Add 1) (parse xs))
+parse ('-':xs) = Free ((Sub 1) (parse xs))
+parse ('.':xs) = Free (Output (parse xs))
+parse (',':xs) = Free (Input (parse xs))
+parse (']':xs) = Free (Close (parse xs))
+parse ('[':xs) = Free (Open (parse xs))
+parse (_:xs) = parse xs
+parse [] = Pure ()
+
+optimize :: IR () -> IR ()
+-- Contraction
+optimize (Free (Add x (Free (Add y next)))) = optimize (Free (Add (x + y) next))
+optimize (Free (Sub x (Free (Sub y next)))) = optimize (Free (Sub (x + y) next))
+optimize (Free (Left x (Free (Left y next)))) = optimize (Free (Left (x + y) next))
+optimize (Free (Right x (Free (Right y next)))) = optimize (Free (Right (x + y) next))
+-- Remove sequences of ><. <>. -+, +-
+optimize (Free (Right x (Free (Left y next)))) 
+    | x == y = optimize next
+    | otherwise = Free $ Right x $ Free $ Left y $ optimize next
+
+optimize (Free (Left x (Free (Right y next)))) 
+    | x == y = optimize next
+    | otherwise = Free $ Left x $ Free $ Right y $ optimize next
+
+optimize (Free (Add x (Free (Sub y next)))) 
+    | x == y = optimize next
+    | otherwise = Free $ Add x $ Free $ Sub y $ optimize next
+    
+optimize (Free (Sub x (Free (Add y next)))) 
+    | x == y = optimize next
+    | otherwise = Free $ Sub x $ Free $ Add y $ optimize next
+
+-- Clear == [-]
+optimize (Free (Open (Free (Sub 1 (Free (Close next)))))) = Free (Clear (optimize next))
+optimize (Free f) = Free (fmap (optimize) f)
+
+
+--Check if r == l
+-- [--->+<] == Divide number at pointer with three and add it to cell 1 to the right
+-- [->+++<] == Multiply number at pointer with three and add it to cell 1 to the right
+-- [->+<] == Copy number at pointer and add to cell 1 to the right
+optimizeLoops :: IR () -> IR ()
+optimizeLoops (Free (Open (Free (Sub x (Free (Right r (Free (Add y (Free (Left l (Free (Close next))))))))))))
+    | y == 1 = Free $ Div x r (optimizeLoops next)
+    | x == 1 = Free $ Mul y r (optimizeLoops next)
+    | x == 1 && y == 1 = Free $ Copy r (optimizeLoops next)
+    | otherwise = (Free (Open (Free (Sub x (Free (Right r (Free (Add y (Free (Left l (Free (Close (optimizeLoops next)))))))))))))
+
+optimizeLoops (Free (Open (Free (Sub x (Free (Left l (Free (Add y (Free (Right r (Free (Close next))))))))))))
+    | y == 1 = Free $ Div x (-l) (optimizeLoops next)
+    | x == 1 = Free $ Mul y (-l) (optimizeLoops next)
+    | x == 1 && y == 1 = Free $ Copy r (optimizeLoops next)
+    | otherwise = (Free (Open (Free (Sub x (Free (Left l (Free (Add y (Free (Right r (Free (Close (optimizeLoops next)))))))))))))
 
 increment :: Memory a -> Memory a
 increment (Memory ls p (r:rs)) = Memory (p:ls) r rs
