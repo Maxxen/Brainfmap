@@ -3,16 +3,7 @@ import Control.Monad.State
 
 type VM = StateT VMState IO
 data VMState = VMState {dmem :: Memory Word8, imem :: Memory Instruction} deriving(Show)
-data Memory a = Memory [a] a [a] deriving Show
 type Instruction = Char
-
-increment :: Memory a -> Memory a
-increment (Memory ls p (r:rs)) = Memory (p:ls) r rs
-increment (Memory ls p []) = (Memory ls p [])
-
-decrement :: Memory a -> Memory a
-decrement (Memory (l:ls) dp rs) = Memory ls l (dp:rs)
-decrement (Memory [] dp rs) = (Memory [] dp rs)
 
 updateDmem :: (Memory Word8 -> Memory Word8) -> VMState -> VMState
 updateDmem f (VMState d i) = VMState (f d) i
@@ -20,15 +11,6 @@ updateDmem f (VMState d i) = VMState (f d) i
 updateImem :: (Memory Instruction -> Memory Instruction) -> VMState -> VMState
 updateImem f (VMState d i) = VMState d (f i)
 
-memEnd :: Memory a -> Bool
-memEnd (Memory _ _ []) = True
-memEnd _ = False
-
-load :: Memory a -> a
-load (Memory _ p _) = p
-
-write ::Memory a -> a -> Memory a
-write (Memory l _ r) p = Memory l p r
 
 main :: IO ()
 main = do
